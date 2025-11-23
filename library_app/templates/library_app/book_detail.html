@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    {% if book.cover %}
+      <img src="{{ book.cover.url }}" alt="{{ book.title }} cover" class="img-fluid rounded shadow-sm">
+    {% else %}
+      <div class="bg-light d-flex align-items-center justify-content-center text-muted rounded" style="height: 220px;">No cover</div>
+    {% endif %}
+  </div>
+  <div class="col-md-8">
+    <h2>{{ book.title }}</h2>
+    <h5 class="text-muted">{{ book.author }}</h5>
+    <p class="mt-3">{{ book.description }}</p>
+    <p>
+      {% if book.is_available %}
+        <span class="badge bg-success">Available</span>
+      {% else %}
+        <span class="badge bg-danger">Borrowed</span>
+        {% if current_borrow and current_borrow.return_date %}
+          <div class="mt-2">
+            <span class="text-muted">Scheduled Return: {{ current_borrow.return_date|date:"M d, Y" }}</span>
+          </div>
+        {% elif current_borrow and current_borrow.due_date %}
+          <div class="mt-2">
+            <span class="text-muted">Due Date: {{ current_borrow.due_date|date:"M d, Y" }}</span>
+            <div class="small text-muted">
+              Expected available: {{ expected_available_date|date:"M d, Y" }}
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </p>
+
+{% if user.is_authenticated %}
+  {% if book.is_available %}
+    <form method="post" action="{% url 'borrow_book' book.pk %}">{% csrf_token %}
+      <button class="btn btn-primary">Borrow</button>
+    </form>
+  {% else %}
+    <button class="btn btn-secondary" disabled>Not Available</button>
+  {% endif %}
+{% else %}
+  <a href="{% url 'login' %}?next={% url 'book_detail' book.pk %}" class="btn btn-outline-primary">Login to Borrow</a>
+{% endif %}
+  </div>
+</div>
+{% endblock %}
