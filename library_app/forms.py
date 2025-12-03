@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
+
 User = get_user_model()
 
 class BookForm(forms.ModelForm):
@@ -24,19 +25,36 @@ class BookForm(forms.ModelForm):
 class PatronRegistrationForm(UserCreationForm):
     username = forms.CharField(
         required=True,
-        min_length=10,
-        max_length=10,
-        validators=[RegexValidator(r'^[A-Za-z0-9]{10}$', message='Username must be exactly 10 alphanumeric characters.')],
+        max_length=6,
+        widget=forms.TextInput(attrs={'maxlength': '6'}),
+        help_text='Maximum 6 characters.'
     )
+    
     email = forms.EmailField(required=True)
+    
     class Meta:
         model = User
         fields = ("username", "email", "password1", "password2")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove default password validators
+        self.fields['password1'].validators = [
+            RegexValidator(
+                regex='^[a-zA-Z0-9]+$',
+                message='Password can only contain letters and numbers.',
+                code='invalid_password'
+            )
+        ]
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if len(username) > 6:
+            raise ValidationError('Username must be at most 6 characters long.')
+        return username
+
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if not email.endswith('@gmail.com'):
-            raise ValidationError('Email must be a Gmail address ending with @gmail.com.')
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError('This email is already registered.')
         return email
@@ -45,14 +63,12 @@ class PatronRegistrationForm(UserCreationForm):
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
-            raise ValidationError('Passwords do not match.')
-        if password1 and not password1.isdigit():
-            raise ValidationError('Password must contain digits only.')
+            raise ValidationError("Passwords don't match.")
         return password2
-
+        
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data.get('email')
+        user.email = self.cleaned_data['email']
         if commit:
             user.save()
         return user

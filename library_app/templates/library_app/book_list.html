@@ -4,20 +4,60 @@
   .hover-card { transition: transform .15s ease, box-shadow .15s ease; }
   .hover-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
   .card-title { font-weight: 600; }
+  .search-container {
+    max-width: 500px;
+    margin: 0 auto 2rem;
+  }
+  .book-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .book-card .card-body {
+    flex: 1;
+  }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">Library Catalog</h1>
-  <span class="badge bg-secondary">{{ books|length }} books</span>
-  
+  <div>
+    <span class="badge bg-secondary">{{ books|length }} books</span>
+    {% if user.is_staff %}
+      <a href="{% url 'create_book' %}" class="btn btn-sm btn-outline-primary ms-2">
+        <i class="bi bi-plus-lg"></i> Add Book
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Search Form -->
+<div class="search-container">
+  <form method="get" class="mb-4">
+    <div class="input-group">
+      <input type="text" 
+             name="q" 
+             class="form-control form-control-lg" 
+             placeholder="Search by title, author, or ISBN..." 
+             value="{{ request.GET.q|default:'' }}"
+             aria-label="Search books">
+      <button class="btn " type="submit" style="background-color: #43A047;color:white;">
+        <i class="bi bi-search"></i> Search
+      </button>
+      {% if request.GET.q %}
+        <a href="{% url 'book_list' %}" class="btn btn-outline-secondary" type="button">
+          <i class="bi bi-x-lg"></i> Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
 </div>
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
   {% for book in books %}
-  <div class="col">
+  <div class="col-lg-2">
     <div class="card h-100 shadow-sm border-0 hover-card">
       {% if book.cover %}
-        <img src="{{ book.cover.url }}" class="card-img-top" alt="{{ book.title }} cover" style="height: 180px; object-fit: cover;">
+        <img src="{{ book.cover.url }}" class="card-img-top" alt="{{ book.title }} cover" style=" object-fit: cover;">
       {% else %}
         <div class="card-img-top bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
           <span>No cover</span>
@@ -32,12 +72,19 @@
         <div class="d-flex justify-content-between align-items-center mt-2">
           <div>
             {% if book.is_available %}
-              <span class="badge bg-success">Available</span>
+              <span class="badge bg-success p-2">Available</span>
             {% else %}
-              <span class="badge bg-danger">Borrowed</span>
+              <span class="badge bg-danger" style="padding: 9px 10px 9px 10px;">Borrowed</span>
             {% endif %}
           </div>
-          <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-primary">Details</a>
+          <a href="{% url 'book_detail' book.pk %}" class="badge" style="
+    text-decoration: none;
+    font-size: 12px;
+    background-color: #1374d1;
+    color: white;
+    padding: 9px 17px 9px 17px;
+    list-style: none;
+">Details</a>
         </div>
       </div>
     </div>

@@ -1,0 +1,62 @@
+~ library_app me = main application
+is folder me jo file hai vo app ke liye use hoti hai
+. migration folder / database me koi changes[table,create,update delete]hoti hai tab unka record yahan save hota hai.
+. Django automatically generate krta hai.
+
+~ _init_.py = python batata hai ki jise import kiya ja sakta hai.
+
+~ admin.py = Django admin panel me konse models show honge ,wo register yahan hota hai.
+
+~ apps.py = App ka config file - Django ko batata hai ki app ka naam kya hai.[folder ka name]
+
+~ forms.py = Django forms banane ke liye use hota hai.
+example - login form,book form,register form
+
+~ models.py = database table yahan banate h.
+exm - book model, student model.
+
+~ urls.py = App ke urls define karne ke liye .
+
+~ views = har page ka logic yahan likha jata hai.
+example = Add book, list books,delete books
+
+~ templates folder = is app ke html pages yahan rakhe jate hai.
+example = add_book.html, book_list.html ect
+
+* library_project / main Django project
+ye poore project ka framework /settings contain karta hai.
+
+~ __init__.py = project ko python package banata hai.
+
+~ asgi.py = Async web server ke liye/
+
+~ settings.py = 
+. project ka sabse imp file .
+. database ,installed apps, templates, static files, secret key,sab yahan hota hai.
+
+~ wsgi.py = deployment time server (apache/gunicorn) ke liye
+
+~ media /folder = images upload ki hui hain.
+
+~ templates/ root templates folder = base.html 
+common layout jisme navbar ,js,css hota hai.
+.ye template other html files extend krte hai.
+
+~ venv/
+python virtual environment
+. isme installed packeg hote hai - Django,pillow,ect.
+
+~ db.sqlite3 =
+SQLite database file - yahan sari data save hoti hai.
+
+~ manage.py =
+Django ka command-line tool
+. runserver ,makemigrations,migrate sab isse hota hai.
+
+~ 
+
+
+
+
+
+

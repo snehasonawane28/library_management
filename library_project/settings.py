@@ -47,6 +47,15 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'book_list'
 LOGOUT_REDIRECT_URL = 'book_list'
 
+# Time and date formats
+TIME_FORMAT = 'g:i A'  # 12-hour format with AM/PM
+TIME_INPUT_FORMATS = [
+    '%I:%M %p',  # 12-hour format with AM/PM
+    '%H:%M',     # 24-hour format as fallback
+]
+DATETIME_FORMAT = 'N j, Y, g:i A'  # e.g. Oct. 25, 2023, 11:20 AM
+DATE_FORMAT = 'N j, Y'  # e.g. Oct. 25, 2023
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,10 +113,12 @@ AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Use local timezone so admin shows local times and 'Now' uses local time
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
+# Keep timezone support enabled
 USE_TZ = True
 
 

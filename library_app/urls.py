@@ -11,4 +11,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='library_app/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('borrowed-books/', views.borrowed_books_history, name='borrowed_books_history'),
+    path('return-book/<int:pk>/', views.return_book, name='return_book'),
+    path('pay-fine/<int:pk>/', views.pay_fine, name='pay_fine'),
 ]

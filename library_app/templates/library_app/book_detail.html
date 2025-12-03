@@ -1,48 +1,218 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row g-4">
-  <div class="col-md-4">
-    {% if book.cover %}
-      <img src="{{ book.cover.url }}" alt="{{ book.title }} cover" class="img-fluid rounded shadow-sm">
-    {% else %}
-      <div class="bg-light d-flex align-items-center justify-content-center text-muted rounded" style="height: 220px;">No cover</div>
-    {% endif %}
-  </div>
-  <div class="col-md-8">
-    <h2>{{ book.title }}</h2>
-    <h5 class="text-muted">{{ book.author }}</h5>
-    <p class="mt-3">{{ book.description }}</p>
-    <p>
-      {% if book.is_available %}
-        <span class="badge bg-success">Available</span>
-      {% else %}
-        <span class="badge bg-danger">Borrowed</span>
-        {% if current_borrow and current_borrow.return_date %}
-          <div class="mt-2">
-            <span class="text-muted">Scheduled Return: {{ current_borrow.return_date|date:"M d, Y" }}</span>
-          </div>
-        {% elif current_borrow and current_borrow.due_date %}
-          <div class="mt-2">
-            <span class="text-muted">Due Date: {{ current_borrow.due_date|date:"M d, Y" }}</span>
-            <div class="small text-muted">
-              Expected available: {{ expected_available_date|date:"M d, Y" }}
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Book Cover Column -->
+        <div class="col-md-4">
+            <div class="book-cover-container shadow-lg rounded overflow-hidden">
+                {% if book.cover %}
+                    <img src="{{ book.cover.url }}" alt="{{ book.title }} cover" class="img-fluid w-100">
+                {% else %}
+                    <div class="no-cover d-flex align-items-center justify-content-center text-muted bg-light" style="height: 400px;">
+                        <div class="text-center p-4">
+                            <i class="bi bi-book d-block" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <span class="mt-2 d-block">No cover available</span>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
-          </div>
-        {% endif %}
-      {% endif %}
-    </p>
+            
+            <!-- Action Buttons -->
+            <div class="mt-4">
+                {% if user.is_authenticated %}
+                    {% if book.is_available %}
+                        <form method="post" action="{% url 'borrow_book' book.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
+                                <i class="bi bi-bookmark-plus me-2"></i>Borrow This Book
+                            </button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-secondary btn-lg w-100 py-3" disabled>
+                            <i class="bi bi-x-circle me-2"></i>Currently Unavailable
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}?next={% url 'book_detail' book.pk %}" 
+                       class="btn btn-outline-primary btn-lg w-100 py-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Borrow
+                    </a>
+                {% endif %}
+            </div>
+        </div>
 
-{% if user.is_authenticated %}
-  {% if book.is_available %}
-    <form method="post" action="{% url 'borrow_book' book.pk %}">{% csrf_token %}
-      <button class="btn btn-primary">Borrow</button>
-    </form>
-  {% else %}
-    <button class="btn btn-secondary" disabled>Not Available</button>
-  {% endif %}
-{% else %}
-  <a href="{% url 'login' %}?next={% url 'book_detail' book.pk %}" class="btn btn-outline-primary">Login to Borrow</a>
-{% endif %}
-  </div>
+        <!-- Book Details Column -->
+        <div class="col-md-8">
+            <div class="book-details">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="display-5 fw-bold mb-2">{{ book.title }}</h1>
+                        <h2 class="h4 text-muted mb-4">by {{ book.author }}</h2>
+                    </div>
+                    <div class="status-badge">
+                        {% if book.is_available %}
+                            <span class="badge bg-success bg-opacity-10 text-success py-2 px-3 rounded-pill">
+                                <i class="bi bi-check-circle-fill me-1"></i> Available
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger py-2 px-3 rounded-pill">
+                                <i class="bi bi-x-circle-fill me-1"></i> Borrowed
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Borrowing Information -->
+               
+
+                <!-- Book Meta -->
+                <div class="book-meta mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle me-3">
+                                    <i class="bi bi-upc-scan"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">ISBN</div>
+                                    <div class="fw-medium">{{ book.isbn|default:"Not specified" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if current_borrower %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-{{ current_borrower.is_staff|yesno:'warning,info' }} bg-opacity-10 text-{{ current_borrower.is_staff|yesno:'warning,info' }} rounded-circle me-3">
+                                    <i class="bi bi-{{ current_borrower.is_staff|yesno:'person-badge,person' }}"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">
+                                        {{ current_borrower.is_staff|yesno:'Staff Borrower,Current Borrower' }}
+                                    </div>
+                                    <div class="fw-medium">
+                                        <div>{{ current_borrower.name }}</div>
+                                        <div class="small d-flex align-items-center mt-1">
+                                            <i class="bi bi-envelope me-2"></i>
+                                            <span>{{ current_borrower.email }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if borrow_record %}
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-info bg-opacity-10 text-info rounded-circle me-3">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Borrowing Details</div>
+                                        <div class="fw-medium">
+                                            <div class="d-flex flex-wrap gap-3">
+                                                {% if not book.is_available %}
+                                                <div>
+                                                    <div class="text-muted small">Borrowed</div>
+                                                    <div>{{ borrow_record.borrow_date|date:"M d, Y" }}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-muted small">Due</div>
+                                                    <div>{{ borrow_record.due_date|date:"M d, Y" }}</div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if borrow_record.return_date or latest_return %}
+                                                <div>
+                                                    <div class="text-muted small">Returned</div>
+                                                    <div>{% if borrow_record.return_date %}
+                                                        {{ borrow_record.return_date|date:"M d, Y" }}
+                                                    {% elif latest_return %}
+                                                        {{ latest_return.return_date|date:"M d, Y" }}
+                                                    {% endif %}</div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Book Description -->
+                <div class="book-description mb-4">
+                    <h5 class="mb-3 fw-bold">About This Book</h5>
+                    <div class="description-text">
+                        {{ book.description|linebreaks|default:"No description available." }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    /* Custom styles for book detail page */
+    .book-cover-container {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        background: #fff;
+        border: 1px solid #e9ecef;
+    }
+    
+    .book-cover-container:hover {
+        transform: translateY(-5px);
+    }
+    
+    .book-cover-container img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    
+    .no-cover {
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+    }
+    
+    .icon-box {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .book-meta {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+    
+    .description-text {
+        line-height: 1.8;
+        color: #495057;
+    }
+    
+    .status-badge .badge {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+        .book-cover-container {
+            max-width: 300px;
+            margin: 0 auto 2rem;
+        }
+        
+        h1.display-5 {
+            font-size: 2rem;
+        }
+    }
+</style>
 {% endblock %}
